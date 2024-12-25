@@ -31,16 +31,5 @@ jobs:
           cd ${{ secrets.DEPLOY_DIR }} &&
           composer install --no-dev --optimize-autoloader &&
           php artisan migrate --force &&
-          php artisan config:cache &&
-          php artisan route:cache &&
-          php artisan view:cache
-          "
-
-      - name: Restart PHP and Web Server
-        env:
-          SSH_PASS: ${{ secrets.SSH_PASS }}
-        run: |
-          sshpass -p "$SSH_PASS" ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
-          sudo systemctl restart php8.1-fpm &&
-          sudo systemctl restart nginx
+          php artisan optimize"
           "
