@@ -1,4 +1,4 @@
-name: Deploy Laravel App to VPS
+name: Test and Deploy Laravel App to VPS
 
 on:
   push:
@@ -6,13 +6,34 @@ on:
       - main
 
 jobs:
-  deploy:
-    name: Deploy Laravel App
+  test_and_deploy:
+    name: Test and Deploy Laravel App
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: mbstring, intl, bcmath, openssl, pdo, tokenizer
+          coverage: none
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "22"
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install Composer Dependencies
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: Run Tests
+        run: php artisan test
 
       - name: Install sshpass
         run: sudo apt-get update && sudo apt-get install -y sshpass
@@ -28,7 +49,7 @@ jobs:
             --exclude="node_modules/" \
             -e "ssh -o StrictHostKeyChecking=no" ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_DIR }}
 
-      - name: Run Deployment Commands on VPS
+      - name: Install Dependencies and Build on VPS
         env:
           SSH_PASS: ${{ secrets.SSH_PASS }}
         run: |
