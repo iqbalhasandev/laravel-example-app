@@ -17,14 +17,14 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.1" # Adjust PHP version as per your application
+          php-version: "8.4" # Adjust PHP version as per your application
           extensions: mbstring, intl, bcmath, openssl, pdo, tokenizer
           coverage: none
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "18" # Adjust Node.js version as per your application
+          node-version: "22" # Adjust Node.js version as per your application
 
       - name: Install Node.js Dependencies
         run: npm install
