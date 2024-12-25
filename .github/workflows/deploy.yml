@@ -14,22 +14,20 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Setup SSH Key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-
-      - name: Add Known Hosts
-        run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+      - name: Install sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
 
       - name: Sync Files to VPS
+        env:
+          SSH_PASS: ${{ secrets.SSH_PASS }}
         run: |
-          rsync -avz --exclude="storage/" --exclude=".env" --exclude=".git/" ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_DIR }}
+          sshpass -p "$SSH_PASS" rsync -avz --exclude="storage/" --exclude=".env" --exclude=".git/" ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_DIR }}
 
       - name: Install Dependencies
+        env:
+          SSH_PASS: ${{ secrets.SSH_PASS }}
         run: |
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
+          sshpass -p "$SSH_PASS" ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
           cd ${{ secrets.DEPLOY_DIR }} &&
           composer install --no-dev --optimize-autoloader &&
           php artisan migrate --force &&
@@ -39,8 +37,10 @@ jobs:
           "
 
       - name: Restart PHP and Web Server
+        env:
+          SSH_PASS: ${{ secrets.SSH_PASS }}
         run: |
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
+          sshpass -p "$SSH_PASS" ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
           sudo systemctl restart php8.1-fpm &&
           sudo systemctl restart nginx
           "
